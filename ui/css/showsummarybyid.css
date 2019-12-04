@@ -1,9 +1,32 @@
 * {
   box-sizing: border-box;
 }
+.yello {
+  background-color: yellow;
+}
+.green {
+  background-color: #c6eed4;
+  color: black;
+  font-weight: bold;
+}
+
+.dark_green {
+  background-color: #0f697c;
+  text-align: center;
+  color: #ffffff;
+}
 
 .content {
-    padding: 30px 10px 1400px 10px;
+    padding: 30px 10px 1600px 10px;
+}
+
+.table_create_income th{
+  text-align: right;
+  padding-right: 5px;
+}
+
+.table_create_income td{
+  padding-left: 5px;
 }
 
 #button_to_top {
@@ -29,30 +52,26 @@
 .table_details tr{
     font-size: 20px;
     text-align: left;
-
 }
+
 .center {
     text-align: center;
 }
 
-.table {
-    color: #ffffff;
-    background-color: #5aaebd;
-    /* text-align: center;border-collapse: collapse; */
-}
-
 .table th{
-    color: #ffffff;
-    background-color: #0f697c;
-    border: 1px solid #ffffff;
+    color: black;
+    background-color: #c6eed4;
+    text-align: center;
+    border: 1px solid black;
 }
 
 .table td{
-    color: black;
-    border: 1px solid #ffffff;
+    border: 1px solid black;
+    text-align: right;
+    max-width:200px;
 }
 
-#income_company_shuhari {
+#income_company_2 {
     background-color:#ffde2c;
     color: #0f697c;
 }
@@ -67,8 +86,12 @@
     background-color: #a13422;
 }
 
-#button_edit_member:hover {
+#button_edit_employee:hover {
     background-color: #a13422;
+}
+
+#button_summary_in_year:hover {
+  background-color: #a13422;
 }
 
 .table_details {
@@ -77,12 +100,24 @@
     padding-right: 40px; 
 }
 
+.table_details th{
+  text-align: right;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+.table_details td{
+  text-align: left;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
 .button {
     background-color: #00ce48;
     color: white;
     text-align: center;
     font-size: 10px;
-    width: 100%;
+    width: 100px;
 }
 
 .button:hover {
@@ -94,7 +129,7 @@
     color: #ffffff;
     text-align: center;
     font-size: 12px;
-    width: 100%;
+    width: 100px;
 }
 
 #button_delete:hover {
@@ -105,15 +140,6 @@ body {
     font-family: 'Sarabun', sans-serif;
     background-color: white;
 }
-
-.circular--square {
-    width:40px;
-    border-top-left-radius: 50% 50%;
-    border-top-right-radius: 50% 50%;
-    border-bottom-right-radius: 50% 50%;
-    border-bottom-left-radius: 50% 50%;
-}
-
 
 
 .row::after {

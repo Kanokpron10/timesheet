@@ -6,10 +6,10 @@
 	},
 	"item": [
 		{
-			"name": "Delete income item member ID 005 and Show timesheet by ID success",
+			"name": "Delete income item employee ID 005 and Show timesheet by employee ID success",
 			"item": [
 				{
-					"name": "Show timesheet by ID",
+					"name": "Show timesheet by employee ID",
 					"event": [
 						{
 							"listen": "test",
@@ -22,16 +22,12 @@
 									"    pm.response.to.have.status(200);",
 									"});",
 									"",
-									"pm.test(\"Member english name should be Apipol sukgler\", function () {",
-									"    pm.expect(jsonData.member_name_eng).to.eql(\"Apipol sukgler\");",
+									"pm.test(\"Employee english name should be Apipol sukgler\", function () {",
+									"    pm.expect(jsonData.employee_name_eng).to.eql(\"Apipol sukgler\");",
 									"});",
 									"",
 									"pm.test(\"Email should be golf.apipol@scrum123.com\", function () {",
 									"    pm.expect(jsonData.email).to.eql(\"golf.apipol@scrum123.com\");",
-									"});",
-									"",
-									"pm.test(\"Overtime rate should be 0\", function () {",
-									"    pm.expect(jsonData.overtime_rate).to.eql(0);",
 									"});",
 									"",
 									"pm.test(\"Rate per day should be 0\", function () {",
@@ -95,17 +91,17 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"year\":2018,\n\t\"month\":12,\n\t\"member_id\":\"005\"\n}"
+							"raw": "{\n\t\"year\":2018,\n\t\"month\":12,\n\t\"employee_id\":\"005\"\n}"
 						},
 						"url": {
-							"raw": "http://localhost:8080/showTimesheetByID",
+							"raw": "http://localhost:8080/showTimesheetByEmployeeID",
 							"protocol": "http",
 							"host": [
 								"localhost"
 							],
 							"port": "8080",
 							"path": [
-								"showTimesheetByID"
+								"showTimesheetByEmployeeID"
 							]
 						}
 					},
@@ -144,7 +140,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"member_id\":\"005\",\n\t\"id\":47\n}"
+							"raw": "{\n\t\"employee_id\":\"005\",\n\t\"id\":47\n}"
 						},
 						"url": {
 							"raw": "http://localhost:8080/deleteIncomeItem",
@@ -193,7 +189,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"member_id\":\"005\",\n\t\"year\":2018,\n\t\"month\":12\n}"
+							"raw": "{\n\t\"employee_id\":\"005\",\n\t\"year\":2018,\n\t\"month\":12\n}"
 						},
 						"url": {
 							"raw": "http://localhost:8080/calculatePayment",
@@ -210,7 +206,7 @@
 					"response": []
 				},
 				{
-					"name": "Show timesheet by ID",
+					"name": "Show timesheet by employee ID",
 					"event": [
 						{
 							"listen": "test",
@@ -223,16 +219,12 @@
 									"    pm.response.to.have.status(200);",
 									"});",
 									"",
-									"pm.test(\"Member english name should be Apipol sukgler\", function () {",
-									"    pm.expect(jsonData.member_name_eng).to.eql(\"Apipol sukgler\");",
+									"pm.test(\"Employee english name should be Apipol sukgler\", function () {",
+									"    pm.expect(jsonData.employee_name_eng).to.eql(\"Apipol sukgler\");",
 									"});",
 									"",
 									"pm.test(\"Email should be golf.apipol@scrum123.com\", function () {",
 									"    pm.expect(jsonData.email).to.eql(\"golf.apipol@scrum123.com\");",
-									"});",
-									"",
-									"pm.test(\"Overtime rate should be 0\", function () {",
-									"    pm.expect(jsonData.overtime_rate).to.eql(0);",
 									"});",
 									"",
 									"pm.test(\"Rate per day should be 0\", function () {",
@@ -299,17 +291,17 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"year\":2018,\n\t\"month\":12,\n\t\"member_id\":\"005\"\n}"
+							"raw": "{\n\t\"year\":2018,\n\t\"month\":12,\n\t\"employee_id\":\"005\"\n}"
 						},
 						"url": {
-							"raw": "http://localhost:8080/showTimesheetByID",
+							"raw": "http://localhost:8080/showTimesheetByEmployeeID",
 							"protocol": "http",
 							"host": [
 								"localhost"
 							],
 							"port": "8080",
 							"path": [
-								"showTimesheetByID"
+								"showTimesheetByEmployeeID"
 							]
 						}
 					},

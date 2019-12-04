@@ -10,32 +10,32 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type Date struct {
+type DateRequest struct {
 	Year  int `json:"year"`
 	Month int `json:"month"`
 }
 
 type CalculatePaymentRequest struct {
-	MemberID string `json:"member_id"`
-	Year     int    `json:"year"`
-	Month    int    `json:"month"`
+	EmployeeID string `json:"employee_id"`
+	Year       int    `json:"year"`
+	Month      int    `json:"month"`
 }
 
-type IncomeRequest struct {
-	Year     int           `json:"year"`
-	Month    int           `json:"month"`
-	MemberID string        `json:"member_id"`
-	Incomes  model.Incomes `json:"incomes"`
+type CreateIncomeRequest struct {
+	Year       int           `json:"year"`
+	Month      int           `json:"month"`
+	EmployeeID string        `json:"employee_id"`
+	Incomes    model.Incomes `json:"incomes"`
 }
 
 type TimesheetRequest struct {
-	MemberID string `json:"member_id"`
-	Year     int    `json:"year"`
-	Month    int    `json:"month"`
+	EmployeeID string `json:"employee_id"`
+	Year       int    `json:"year"`
+	Month      int    `json:"month"`
 }
 
 type UpdateStatusRequest struct {
-	MemberID      string `json:"member_id"`
+	EmployeeID    string `json:"employee_id"`
 	TransactionID string `json:"transaction_id"`
 	Status        string `json:"status"`
 	Date          string `json:"date"`
@@ -43,21 +43,17 @@ type UpdateStatusRequest struct {
 }
 
 type DeleteIncomeRequest struct {
-	MemberID string `json:"member_id"`
-	IncomeID int    `json:"id"`
+	EmployeeID string `json:"employee_id"`
+	IncomeID   int    `json:"id"`
 }
 
-type MemberRequest struct {
-	MemberID string `json:"member_id"`
-}
-
-type HolidayRequest struct {
-	Month int `json:"month"`
+type EmployeeRequest struct {
+	EmployeeID string `json:"employee_id"`
 }
 
 type SummaryInYearRequest struct {
-	MemberID string `json:"member_id"`
-	Year     int    `json:"year"`
+	EmployeeID string `json:"employee_id"`
+	Year       int    `json:"year"`
 }
 
 type TimesheetAPI struct {
@@ -66,14 +62,14 @@ type TimesheetAPI struct {
 	RepositoryToTimesheet repository.TimesheetRepositoryGatewaysToTimesheet
 }
 
-func (api TimesheetAPI) GetSummaryByIDHandler(context *gin.Context) {
+func (api TimesheetAPI) GetSummaryByEmployeeIDHandler(context *gin.Context) {
 	var request TimesheetRequest
 	err := context.ShouldBindJSON(&request)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	summaryTimesheet, err := api.Timesheet.GetSummaryByID(request.MemberID, request.Year, request.Month)
+	summaryTimesheet, err := api.Timesheet.GetSummaryByID(request.EmployeeID, request.Year, request.Month)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -82,7 +78,7 @@ func (api TimesheetAPI) GetSummaryByIDHandler(context *gin.Context) {
 }
 
 func (api TimesheetAPI) GetSummaryHandler(context *gin.Context) {
-	var request Date
+	var request DateRequest
 	err := context.ShouldBindJSON(&request)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -97,19 +93,22 @@ func (api TimesheetAPI) GetSummaryHandler(context *gin.Context) {
 }
 
 func (api TimesheetAPI) CreateIncomeHandler(context *gin.Context) {
-	var request IncomeRequest
+	var request CreateIncomeRequest
 	err := context.ShouldBindJSON(&request)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	email, expiry := getEmailAndExpiryFromHeaderAuthorization(context)
-	status := api.Timesheet.VerifyAuthentication(email, expiry, request.MemberID)
-	if status != "Success" {
+	email, idTokenExpirationTime := getEmailAndIDTokenExpirationTimeFromHeaderAuthorization(context)
+	if !api.Timesheet.VerifyAuthentication(email, idTokenExpirationTime) {
 		context.Status(http.StatusUnauthorized)
 		return
 	}
-	err = api.Repository.CreateIncome(request.Year, request.Month, request.MemberID, request.Incomes)
+	if !api.Repository.VerifyIncomeRequest(request.EmployeeID, request.Incomes.CompanyID) {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	err = api.Repository.CreateIncome(request.Year, request.Month, request.EmployeeID, request.Incomes)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -124,29 +123,28 @@ func (api TimesheetAPI) CalculatePaymentHandler(context *gin.Context) {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	email, expiry := getEmailAndExpiryFromHeaderAuthorization(context)
-	status := api.Timesheet.VerifyAuthentication(email, expiry, request.MemberID)
-	if status != "Success" {
+	email, idTokenExpirationTime := getEmailAndIDTokenExpirationTimeFromHeaderAuthorization(context)
+	if !api.Timesheet.VerifyAuthentication(email, idTokenExpirationTime) {
 		context.Status(http.StatusUnauthorized)
 		return
 	}
-	incomeList, err := api.RepositoryToTimesheet.GetIncomes(request.MemberID, request.Year, request.Month)
+	incomeList, err := api.RepositoryToTimesheet.GetIncomes(request.EmployeeID, request.Year, request.Month)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	timesheet := api.Timesheet.CalculatePayment(incomeList)
-	err = api.Repository.UpdateTimesheet(timesheet, request.MemberID, request.Year, request.Month)
+	err = api.Repository.UpdateTimesheet(timesheet, request.EmployeeID, request.Year, request.Month)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	memberList, err := api.RepositoryToTimesheet.GetMemberListByMemberID(request.MemberID)
+	employList, err := api.RepositoryToTimesheet.GetEmployeeListByEmployeeID(request.EmployeeID)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	transactionTimesheetList := api.Timesheet.CalculatePaymentSummary(memberList, incomeList, request.Year, request.Month)
+	transactionTimesheetList := api.Timesheet.CalculatePaymentSummary(employList, incomeList, request.Year, request.Month)
 	err = api.Repository.VerifyTransactionTimesheet(transactionTimesheetList)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -162,9 +160,8 @@ func (api TimesheetAPI) UpdateStatusCheckingTransferHandler(context *gin.Context
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	email, expiry := getEmailAndExpiryFromHeaderAuthorization(context)
-	status := api.Timesheet.VerifyAuthentication(email, expiry, request.MemberID)
-	if status != "Success" {
+	email, idTokenExpirationTime := getEmailAndIDTokenExpirationTimeFromHeaderAuthorization(context)
+	if !api.Timesheet.VerifyAuthentication(email, idTokenExpirationTime) {
 		context.Status(http.StatusUnauthorized)
 		return
 	}
@@ -183,9 +180,8 @@ func (api TimesheetAPI) DeleteIncomeHandler(context *gin.Context) {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	email, expiry := getEmailAndExpiryFromHeaderAuthorization(context)
-	status := api.Timesheet.VerifyAuthentication(email, expiry, request.MemberID)
-	if status != "Success" {
+	email, idTokenExpirationTime := getEmailAndIDTokenExpirationTimeFromHeaderAuthorization(context)
+	if !api.Timesheet.VerifyAuthentication(email, idTokenExpirationTime) {
 		context.Status(http.StatusUnauthorized)
 		return
 	}
@@ -197,35 +193,34 @@ func (api TimesheetAPI) DeleteIncomeHandler(context *gin.Context) {
 	context.Status(http.StatusOK)
 }
 
-func (api TimesheetAPI) ShowMemberDetailsByIDHandler(context *gin.Context) {
-	var request MemberRequest
+func (api TimesheetAPI) ShowEmployeeDetailsByEmployeeIDHandler(context *gin.Context) {
+	var request EmployeeRequest
 	err := context.ShouldBindJSON(&request)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	memberList, err := api.RepositoryToTimesheet.GetMemberListByMemberID(request.MemberID)
+	employList, err := api.RepositoryToTimesheet.GetEmployeeListByEmployeeID(request.EmployeeID)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	context.JSON(http.StatusOK, memberList)
+	context.JSON(http.StatusOK, employList)
 }
 
-func (api TimesheetAPI) UpdateMemberDetailsHandler(context *gin.Context) {
-	var request model.Member
+func (api TimesheetAPI) UpdateEmployeeDetailsHandler(context *gin.Context) {
+	var request model.Employee
 	err := context.ShouldBindJSON(&request)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	email, expiry := getEmailAndExpiryFromHeaderAuthorization(context)
-	status := api.Timesheet.VerifyAuthentication(email, expiry, request.MemberID)
-	if status != "Success" {
+	email, idTokenExpirationTime := getEmailAndIDTokenExpirationTimeFromHeaderAuthorization(context)
+	if !api.Timesheet.VerifyAuthentication(email, idTokenExpirationTime) {
 		context.Status(http.StatusUnauthorized)
 		return
 	}
-	err = api.Repository.UpdateMemberDetails(request)
+	err = api.Repository.UpdateEmployeeDetails(request)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -234,7 +229,11 @@ func (api TimesheetAPI) UpdateMemberDetailsHandler(context *gin.Context) {
 }
 
 func (api TimesheetAPI) GetProfileHandler(context *gin.Context) {
-	email, _ := getEmailAndExpiryFromHeaderAuthorization(context)
+	email, idTokenExpirationTime := getEmailAndIDTokenExpirationTimeFromHeaderAuthorization(context)
+	if !api.Timesheet.VerifyAuthentication(email, idTokenExpirationTime) {
+		context.Status(http.StatusUnauthorized)
+		return
+	}
 	profile, err := api.Repository.GetProfileByEmail(email)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -250,7 +249,7 @@ func (api TimesheetAPI) ShowSummaryInYearHandler(context *gin.Context) {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	summaryTransactionTimesheet, err := api.Timesheet.GetSummaryInYearByID(request.MemberID, request.Year)
+	summaryTransactionTimesheet, err := api.Timesheet.GetSummaryInYearByEmployeeID(request.EmployeeID, request.Year)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -258,19 +257,19 @@ func (api TimesheetAPI) ShowSummaryInYearHandler(context *gin.Context) {
 	context.JSON(http.StatusOK, summaryTransactionTimesheet)
 }
 
-func getEmailAndExpiryFromHeaderAuthorization(context *gin.Context) (string, float64) {
+func getEmailAndIDTokenExpirationTimeFromHeaderAuthorization(context *gin.Context) (string, float64) {
 	var email string
-	var expiry float64
+	var idTokenExpirationTime float64
 	requestHeader := context.GetHeader("Authorization")
 	if requestHeader == "" {
 		context.Status(http.StatusUnauthorized)
-		return email, expiry
+		return email, idTokenExpirationTime
 	}
 	token, _ := jwt.Parse(requestHeader, func(token *jwt.Token) (interface{}, error) {
 		return []byte(""), nil
 	})
 	claims := token.Claims.(jwt.MapClaims)
 	email = claims["email"].(string)
-	expiry = claims["exp"].(float64)
-	return email, expiry
+	idTokenExpirationTime = claims["exp"].(float64)
+	return email, idTokenExpirationTime
 }

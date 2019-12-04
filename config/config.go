@@ -2,35 +2,59 @@ package config
 
 import (
 	"fmt"
-	"io/ioutil"
-
-	"gopkg.in/yaml.v2"
+	"os"
 )
 
 type DatabaseConfig struct {
-	Username string `yaml:"username"`
-	Password string `yaml:"password"`
-	Host     string `yaml:"host"`
-	Port     string `yaml:"port"`
-	Database string `yaml:"database"`
+	Username string
+	Password string
+	Host     string
+	Port     string
+	Database string
 }
 
 func (databaseConfig DatabaseConfig) GetURI() string {
 	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true", databaseConfig.Username, databaseConfig.Password, databaseConfig.Host, databaseConfig.Port, databaseConfig.Database)
 }
 
-func SetupDatabaseConfig(databaseConfigPath string) (DatabaseConfig, error) {
-	var databaseConfig DatabaseConfig
-
-	databaseConfigFile, err := ioutil.ReadFile(databaseConfigPath)
-	if err != nil {
-		return databaseConfig, err
+func SetupConfig() (DatabaseConfig, error) {
+	databaseConfig := DatabaseConfig{
+		Username: "root",
+		Password: "root",
+		Host:     "localhost",
+		Port:     "3306",
+		Database: "timesheet",
 	}
 
-	err = yaml.Unmarshal(databaseConfigFile, &databaseConfig)
-	if err != nil {
-		return databaseConfig, err
+	if os.Getenv("USERNAME_DATABASE") != "" {
+		databaseConfig.Username = os.Getenv("USERNAME_DATABASE")
 	}
 
-	return databaseConfig, err
+	if os.Getenv("PASSWORD_DATABASE") != "" {
+		databaseConfig.Password = os.Getenv("PASSWORD_DATABASE")
+	}
+
+	if os.Getenv("HOST_DATABASE") != "" {
+		databaseConfig.Host = os.Getenv("HOST_DATABASE")
+	} else {
+		databaseConfig.Host = "localhost"
+	}
+
+	if os.Getenv("PORT_DATABASE") != "" {
+		databaseConfig.Port = os.Getenv("PORT_DATABASE")
+	}
+
+	if os.Getenv("DATABASE_NAME") != "" {
+		databaseConfig.Database = os.Getenv("DATABASE_NAME")
+	}
+
+	return databaseConfig, nil
+}
+
+func GetCallbackURI() string {
+	host := "localhost:8080"
+	if os.Getenv("HOST_CALLBACK") != "" {
+		host = os.Getenv("HOST_CALLBACK")
+	}
+	return fmt.Sprintf("http://%s/callback", host)
 }

@@ -1,15 +1,15 @@
 {
 	"info": {
 		"_postman_id": "f47d461e-f323-4034-8e08-458e6160fa38",
-		"name": "ShowMemberDetailsByIDSuccess",
+		"name": "ShowEmployeeDetailsByEmployeeIDSuccess",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
 		{
-			"name": "Show member details member ID 006 and Show timesheet by ID success",
+			"name": "Show employee details employee ID 006 and Show timesheet by ID success",
 			"item": [
 				{
-					"name": "Show member details by ID",
+					"name": "Show employee details by  employee ID",
 					"event": [
 						{
 							"listen": "test",
@@ -22,28 +22,28 @@
 									"    pm.response.to.have.status(200);",
 									"});",
 									"",
-									"pm.test(\"MemberID should be 006\", function () {",
-									"    pm.expect(jsonData[1].member_id).to.eql(\"006\");",
+									"pm.test(\"Employee ID should be 006\", function () {",
+									"    pm.expect(jsonData[1].employee_id).to.eql(\"006\");",
 									"});",
 									"",
-									"pm.test(\"Company should be siam_chamnankit\", function () {",
-									"    pm.expect(jsonData[1].company).to.eql(\"siam_chamnankit\");",
+									"pm.test(\"Company ID should be 2\", function () {",
+									"    pm.expect(jsonData[1].company_id).to.eql(2);",
 									"});",
 									"",
-									"pm.test(\"Member thai name should be ภาณุมาศ แสนโท\", function () {",
-									"    pm.expect(jsonData[1].member_name_th).to.eql(\"ภาณุมาศ แสนโท\");",
+									"pm.test(\"Company name should be SHU HA RI\", function () {",
+									"    pm.expect(jsonData[1].company_name).to.eql(\"SHU HA RI\");",
 									"});",
 									"",
-									"pm.test(\"Member english name should be Panumars Seanto\", function () {",
-									"    pm.expect(jsonData[1].member_name_eng).to.eql(\"Panumars Seanto\");",
+									"pm.test(\"Employee thai name should be ภาณุมาศ แสนโท\", function () {",
+									"    pm.expect(jsonData[1].employee_name_th).to.eql(\"ภาณุมาศ แสนโท\");",
+									"});",
+									"",
+									"pm.test(\"Employee english name should be Panumars Seanto\", function () {",
+									"    pm.expect(jsonData[1].employee_name_eng).to.eql(\"Panumars Seanto\");",
 									"});",
 									"",
 									"pm.test(\"Email should be panumars@scrum123.com\", function () {",
 									"    pm.expect(jsonData[1].email).to.eql(\"panumars@scrum123.com\");",
-									"});",
-									"",
-									"pm.test(\"Overtime rate should be 0\", function () {",
-									"    pm.expect(jsonData[1].overtime_rate).to.eql(0);",
 									"});",
 									"",
 									"pm.test(\"Rate per day should be 15000\", function () {",
@@ -94,24 +94,24 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"member_id\":\"006\"\n}"
+							"raw": "{\n\t\"employee_id\":\"006\"\n}"
 						},
 						"url": {
-							"raw": "http://localhost:8080/showMemberDetailsByID",
+							"raw": "http://localhost:8080/showEmployeeDetailsByEmployeeID",
 							"protocol": "http",
 							"host": [
 								"localhost"
 							],
 							"port": "8080",
 							"path": [
-								"showMemberDetailsByID"
+								"showEmployeeDetailsByEmployeeID"
 							]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "Update member details",
+					"name": "Update employee details",
 					"event": [
 						{
 							"listen": "test",
@@ -143,24 +143,24 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"id\":10,\n\t\"member_id\":\"006\",\n\t\"member_name_th\":\"ภาณุมาศ แสนโท\",\n\t\"member_name_eng\":\"Panumars Seanto\",\n\t\"email\":\"panumars@scrum123.com\",\n\t\"overtime_rate\":2000,\n\t\"rate_per_day\":15000,\n\t\"rate_per_hour\":1875,\n\t\"salary\":25000,\n\t\"income_tax_1\":0,\n\t\"social_security\":750,\n\t\"income_tax_53_percentage\":5,\n\t\"travel_expense\":1500,\n\t\"status\":\"salary\"\n}"
+							"raw": "{\n\t\"id\":10,\n\t\"employee_id\":\"006\",\n\t\"employee_name_th\":\"ภาณุมาศ แสนโท\",\n\t\"employee_name_eng\":\"Panumars Seanto\",\n\t\"email\":\"panumars@scrum123.com\",\n\t\"rate_per_day\":15000,\n\t\"rate_per_hour\":1875,\n\t\"salary\":25000,\n\t\"income_tax_1\":0,\n\t\"social_security\":750,\n\t\"income_tax_53_percentage\":5,\n\t\"travel_expense\":1500,\n\t\"status\":\"salary\"\n}"
 						},
 						"url": {
-							"raw": "http://localhost:8080/updateMemberDetails",
+							"raw": "http://localhost:8080/updateEmployeeDetails",
 							"protocol": "http",
 							"host": [
 								"localhost"
 							],
 							"port": "8080",
 							"path": [
-								"updateMemberDetails"
+								"updateEmployeeDetails"
 							]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "Show member details by ID",
+					"name": "Show employee details by employee ID",
 					"event": [
 						{
 							"listen": "test",
@@ -173,28 +173,28 @@
 									"    pm.response.to.have.status(200);",
 									"});",
 									"",
-									"pm.test(\"MemberID should be 006\", function () {",
-									"    pm.expect(jsonData[1].member_id).to.eql(\"006\");",
+									"pm.test(\"Employee ID should be 006\", function () {",
+									"    pm.expect(jsonData[1].employee_id).to.eql(\"006\");",
 									"});",
 									"",
-									"pm.test(\"Company should be siam_chamnankit\", function () {",
-									"    pm.expect(jsonData[1].company).to.eql(\"siam_chamnankit\");",
+									"pm.test(\"Company ID should be 2\", function () {",
+									"    pm.expect(jsonData[1].company_id).to.eql(2);",
 									"});",
 									"",
-									"pm.test(\"Member thai name should be ภาณุมาศ แสนโท\", function () {",
-									"    pm.expect(jsonData[1].member_name_th).to.eql(\"ภาณุมาศ แสนโท\");",
+									"pm.test(\"Company name should be SHU HA RI\", function () {",
+									"    pm.expect(jsonData[1].company_name).to.eql(\"SHU HA RI\");",
 									"});",
 									"",
-									"pm.test(\"Member english name should be Panumars Seanto\", function () {",
-									"    pm.expect(jsonData[1].member_name_eng).to.eql(\"Panumars Seanto\");",
+									"pm.test(\"Employee thai name should be ภาณุมาศ แสนโท\", function () {",
+									"    pm.expect(jsonData[1].employee_name_th).to.eql(\"ภาณุมาศ แสนโท\");",
+									"});",
+									"",
+									"pm.test(\"Employee english name should be Panumars Seanto\", function () {",
+									"    pm.expect(jsonData[1].employee_name_eng).to.eql(\"Panumars Seanto\");",
 									"});",
 									"",
 									"pm.test(\"Email should be panumars@scrum123.com\", function () {",
 									"    pm.expect(jsonData[1].email).to.eql(\"panumars@scrum123.com\");",
-									"});",
-									"",
-									"pm.test(\"Overtime rate should be 2000\", function () {",
-									"    pm.expect(jsonData[1].overtime_rate).to.eql(2000);",
 									"});",
 									"",
 									"pm.test(\"Rate per day should be 15000\", function () {",
@@ -245,17 +245,17 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"member_id\":\"006\"\n}"
+							"raw": "{\n\t\"employee_id\":\"006\"\n}"
 						},
 						"url": {
-							"raw": "http://localhost:8080/showMemberDetailsByID",
+							"raw": "http://localhost:8080/showEmployeeDetailsByEmployeeID",
 							"protocol": "http",
 							"host": [
 								"localhost"
 							],
 							"port": "8080",
 							"path": [
-								"showMemberDetailsByID"
+								"showEmployeeDetailsByEmployeeID"
 							]
 						}
 					},
@@ -263,6 +263,28 @@
 				}
 			],
 			"protocolProfileBehavior": {}
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "3f723b24-b587-42e6-8af8-56bc5a13f7fc",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "f6963122-369f-43d6-b1c7-b3ea222ca36d",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
 		}
 	],
 	"protocolProfileBehavior": {}

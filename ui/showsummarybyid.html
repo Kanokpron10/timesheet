@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <title>PROFILE</title>
+  <link rel="stylesheet" href="/home/css/footer.css">
   <link rel="stylesheet" href="/home/css/showsummarybyid.css">
   <link href="https://fonts.googleapis.com/css?family=Sarabun&display=swap" rel="stylesheet">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -12,7 +13,7 @@
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
-<script>showSummaryByID();setTableBodyAddIncomeItem();</script>
+<script>showSummaryByID();</script>
 
 <body>
 <nav class="navbar navbar-inverse">
@@ -27,31 +28,8 @@
     </div>
     <div class="collapse navbar-collapse" id="myNavbar">
       <ul class="nav navbar-nav">
-        <li><a href="/home" style="text-align: center;">HOME</a></li>
-        <li><a href="/home/memberdetails.html" id="button_edit_member" style="text-align: center;">PROFILE</a></li>
-        <li><a style="text-align: center;"><form id="form_show_summary_by_id" action="showsummarybyid.html" method="get">
-                <input type="month" id="date" name="date" style="color:black;">
-              <select name="id" id="id" style="color:black;">
-                <option value="" selected disabled hidden>รายชื่อ</option>
-                <option value="007">TEST LOGIN</option>
-                <option value="015">PRUTH</option>
-                <option value="001">PRATHAN</option>
-                <option value="004">THAWATCHAI</option>
-                <option value="003">SOMKIAT</option>
-                <option value="008">CHAMNAN</option>
-                <option value="009">CHONNIKAN</option>
-                <option value="010">CHITPONG</option>
-                <option value="011">NATHAWAT</option>
-                <option value="012">PICHAYA</option>
-                <option value="013">PICHAI</option>
-                <option value="002">NAREENART</option>
-                <option value="005">APIPOL</option>
-                <option value="006">PANUMARS</option>
-                <option value="014">NATTAKIT</option>      
-            </select>
-            <input type="submit" id="button_show_summary_by_id" value="ค้นหา"/>
-        </form></a></li>
-        
+        <li><a onclick="goToPaymentSummaryAnnualPage()" id="button_summary_in_year" style="text-align: center;">PAYMENT SUMMARY ANNUAL</a></li>
+        <li><a onclick="goToProfilePage()" id="button_edit_employee" style="text-align: center;">EDIT EMPLOYEE INFO</a></li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li id="picture_profile" style="text-align: center;"></li>
@@ -62,57 +40,166 @@
   </div>
 </nav>
 
-<div class="content"> 
-    <div><table class="table_details" style="color: black;">
-    <tr>
-        <th>Name : </th><td id="member_name_eng"></td>
-    </tr>
-    <tr>
-        <th>Email : </th><td id="email"></td>
-    </tr>
-    </table></div>
-    <div class="col-3 right">
-            <div id="google_calendar"></div>
-    </div>
-    <div class="col-3 right">
-        <table class="table">
-            <tbody id="table_addIncomeItem"></tbody>
-        </table>
-    </div>
 
-<div class="col-12" style="text-align: center;border-collapse: collapse;">
+<div class="content">
+    <p hidden id="date_val"></p>
+  <div><table class="table_details" style="color: black;">
+    <tr>
+        <th>Name: </th><td class="yello" id="employee_name_eng"></td><th>Email: </th><td class="yello" id="email"></td>
+    </tr>
+    <tr>
+      <th colspan="2">Rate Per Day: </th><td id="rate_per_day"></td>
+    </tr>
+    <tr>
+      <th colspan="2">Rate Per Hour: </th><td id="rate_per_hour"></td>
+    </tr>
+    <tr>
+      <th colspan="2">Month: </th><td id="month_number"></td><td id="month_name"></td>
+    </tr>
+    <tr>
+      <th colspan="2">Year: </th><td id="year"></td>
+    </tr>
+    </table>
+  </div>
+<br><br>
+<div>
+  <div class="col-3 navbar-right">
+      <div id="google_calendar"></div>
+  </div>
+
+  <div class="col-3">
+    <div class="form-inline">
+      <table class="table_create_income" > 
+        <tr><th colspan="2" style="text-align: center;background-color: cornsilk;"><h2>Timesheet Form</h2></th></tr>
+        <tr>
+          <th><label class="mb-2 mr-sm-2">Date:</label></th><td><input type="date" class="form-control mb-2 mr-sm-2" id="day"></td>
+        </tr>
+        <tr>
+            <th><label class="mb-2 mr-sm-2">Start Time:</label></th><td><input type="time" class="form-control mb-2 mr-sm-2" step="1" id="start_time_am" value=09:00:00></td>
+        </tr>
+        <tr>
+            <th><label class="mb-2 mr-sm-2">End Time:</label></th><td><input type="time" class="form-control mb-2 mr-sm-2" step="1" id="end_time_am" value=12:00:00></td>
+        </tr>
+        <tr>
+            <th><label class="mb-2 mr-sm-2">Start Time:</label></th><td><input type="time" class="form-control mb-2 mr-sm-2" step="1" id="start_time_pm" value=13:00:00></td>
+        </tr>
+        <tr>
+            <th><label class="mb-2 mr-sm-2">End Time:</label></th><td><input type="time" class="form-control mb-2 mr-sm-2" step="1" id="end_time_pm" value=18:00:00></td>
+        </tr>
+        <tr>
+          <th><label class="mb-2 mr-sm-2">Coaching Customer Charging (THB):</label></th><td><select id="coaching_customer_charging" value=0.00>
+            <option value=0.00>฿ 0.00</option>
+            <option value=5000.00>฿ 5,000.00</option>
+            <option value=7500.00>฿ 7,500.00</option>
+            <option value=10000.00>฿ 10,000.00</option>
+            <option value=12000.00>฿ 12,000.00</option>
+            <option value=15000.00>฿ 15,000.00</option>
+            <option value=25000.00>฿ 25,000.00</option>
+            <option value=30000.00>฿ 30,000.00</option>
+            <option value=45000.00>฿ 45,000.00</option>
+          </select></td>
+        </tr>
+        <tr>
+            <th><label class="mb-2 mr-sm-2">Coaching Payment Rate (THB):</label></th><td><select id="coaching_payment_rate" value=0.00>
+                <option value=0.00>฿ 0.00</option>
+                <option value=5000.00>฿ 5,000.00</option>
+                <option value=7500.00>฿ 7,500.00</option>
+                <option value=10000.00>฿ 10,000.00</option>
+                <option value=12000.00>฿ 12,000.00</option>
+                <option value=15000.00>฿ 15,000.00</option>
+            </select></td>
+        </tr>
+        <tr>
+            <th><label class="mb-2 mr-sm-2">Training Wage (THB):</label></th><td><select id="training_wage" value=0.00>
+                <option value=0.00>฿ 0.00</option>
+                <option value=1000.00>฿ 1,000.00</option>
+                <option value=2000.00>฿ 2,000.00</option>
+                <option value=3000.00>฿ 3,000.00</option>
+                <option value=5000.00>฿ 5,000.00</option>
+                <option value=10000.00>฿ 10,000.00</option>
+                <option value=15000.00>฿ 15,000.00</option>
+                <option value=20000.00>฿ 20,000.00</option>
+                <option value=25000.00>฿ 25,000.00</option>
+            </select></td>
+        </tr>
+        <tr>
+            <th><label class="mb-2 mr-sm-2">Other Wage (THB):</label></th><td><select id="other_wage" value=0.00>
+                <option value=0.00>฿ 0.00</option>
+                <option value=2000.00>฿ 2,000.00</option>
+                <option value=5000.00>฿ 5,000.00</option>
+                <option value=7500.00>฿ 7,500.00</option>
+                <option value=10000.00>฿ 10,000.00</option>
+            </select></td>
+        </tr>
+        <tr>
+            <th><label class="mb-2 mr-sm-2">Company:</label></th><td>
+                <select id="company_id">
+                    <option value=1>Siam Chamnankit</option>
+                    <option value=2>Shu Ha Ri</option>
+                    <option value=3>We love Bug</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <th><label class="mb-2 mr-sm-2">Description:</label></th><td><textarea id="description" cols="30" rows="5" placeholder="Description"></textarea></td>
+        </tr>
+        <tr>
+      <th></th><th><button style="text-align: right;" type="submit" class="btn btn-primary mb-2" id="button_add_income_item" onclick="createIncomeThenCalculatePayment()">ADD</button></th>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <br><br><br>
+
+  <div>
     <table class="table">
         <tr>
-            <th>Date</th>
-            <th>Start Time</th>
-            <th>End Time</th>
-            <th>Start Time</th>
-            <th>End Time</th>
-            <th>Overtime</th>
-            <th>Total Hours</th>
-            <th>Coaching Customer Charging (THB)</th>
-            <th>Coaching Payment Rate (THB)</th>
-            <th>Training Wage (THB)</th>
-            <th>Other Wage (THB)</th>
-            <th colspan="2">Description</th>
+            <th style="min-width: 20px;">Date</th>
+            <th style="min-width: 90px;">Start Time</th>
+            <th style="min-width: 90px;">End Time</th>
+            <th style="min-width: 90px;">Start Time</th>
+            <th style="min-width: 90px;">End Time</th>
+            <th style="min-width: 110px;">Total Hours (hrs)</th>
+            <th style="min-width: 160px;">Coaching Customer Charging</th>
+            <th style="min-width: 160px;">Coaching Payment Rate</th>
+            <th style="min-width: 160px;">Training Wage (THB)</th>
+            <th style="min-width: 160px;">Other Wage (THB)</th>
+            <th style="min-width: 500px;">Description</th>
+            <th style="min-width: 100px;"></th>
         </tr>
         <tbody id="table_timesheet"></tbody>
         <tr>
-            <th colspan="6">Total Hours:</th>
-            <th colspan="7" id="thours"></th>
+            <th style="text-align: right;" colspan="5">Total Hours:</th>
+            <th style="text-align: right;" id="thours"></th>
+            <th colspan="6"></th>
         </tr>
         <tr>
-            <th colspan="6">Payment wage:</th>
-            <th id="payment_wage"></th>
-            <th id="total_coaching_customer_charging"></th>
-            <th id="total_coaching_payment_rate"></th>
-            <th id="total_trainig_wage"></th>
-            <th id="total_other_wage"></th>
+            <th style="text-align: right;" colspan="5">Payment wage:</th>
+            <th style="text-align: right;" id="payment_wage"></th>
+            <th style="text-align: right;" id="total_coaching_customer_charging"></th>
+            <th style="text-align: right;" id="total_coaching_payment_rate"></th>
+            <th style="text-align: right;" id="total_trainig_wage"></th>
+            <th style="text-align: right;" id="total_other_wage"></th>
             <th id="th_button_calculate" colspan="2"></th>
         </tr>
     </table>
-    </div>
+  </div>
     <button onclick="topFunction()" id="button_to_top" title="Go to top">Top</button>
 </div>
+
+<div class="footer">
+    <a href="/home" class="active">PAYMENTS</a>
+    <a onclick="goToSummaryTimesheetByEmployeeID('008')" id="employeeID008">PRUTH</a>
+    <a onclick="goToSummaryTimesheetByEmployeeID('001')" id="employeeID001">PRATHAN</a>
+    <a onclick="goToSummaryTimesheetByEmployeeID('004')" id="employeeID004">THAWATCHAI</a>
+    <a onclick="goToSummaryTimesheetByEmployeeID('003')" id="employeeID003">SOMKIAT</a>
+    <a onclick="goToSummaryTimesheetByEmployeeID('010')" id="employeeID010">KARAN</a>
+    <a onclick="goToSummaryTimesheetByEmployeeID('006')" id="employeeID006">PANUMARS</a>
+    <a onclick="goToSummaryTimesheetByEmployeeID('002')" id="employeeID002">NAREENART</a>
+    <a onclick="goToSummaryTimesheetByEmployeeID('005')" id="employeeID005">APIPOL</a>
+    <a onclick="goToSummaryTimesheetByEmployeeID('007')" id="employeeID007">KARNAWAT</a>
+    <a onclick="goToSummaryTimesheetByEmployeeID('009')" id="employeeID009">NUTTAYA</a>
+  </div>
 </body>
 </html>

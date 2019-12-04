@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"strings"
 	"time"
 	"timesheet/internal/model"
 	"timesheet/internal/repository"
@@ -15,45 +16,45 @@ const (
 )
 
 type TimesheetGateways interface {
-	CalculatePaymentSummary(member []model.Member, incomes []model.Incomes, year, month int) []model.TransactionTimesheet
+	CalculatePaymentSummary(employee []model.Employee, incomes []model.Incomes, year, month int) []model.TransactionTimesheet
 	CalculatePayment(incomes []model.Incomes) model.Timesheet
-	GetSummaryByID(memberID string, year, month int) (model.SummaryTimesheet, error)
-	VerifyAuthentication(email string, expiry float64, memberID string) string
-	GetSummaryInYearByID(memberID string, year int) (model.SummaryTransactionTimesheet, error)
+	GetSummaryByID(employeeID string, year, month int) (model.SummaryTimesheet, error)
+	VerifyAuthentication(email string, idTokenExpirationTime float64) bool
+	GetSummaryInYearByEmployeeID(employeeID string, year int) (model.SummaryTransactionTimesheet, error)
 }
 
 type Timesheet struct {
 	Repository repository.TimesheetRepositoryGatewaysToTimesheet
 }
 
-func (timesheet Timesheet) CalculatePaymentSummary(member []model.Member, incomes []model.Incomes, year, month int) []model.TransactionTimesheet {
+func (timesheet Timesheet) CalculatePaymentSummary(employee []model.Employee, incomes []model.Incomes, year, month int) []model.TransactionTimesheet {
 	var transactionTimesheetList []model.TransactionTimesheet
-	for _, member := range member {
-		totalCoachingPaymentRate := calculateTotalCoachingPaymentRateByCompany(incomes, member.Company)
-		totalTrainingWage := calculateTotalTrainingWageByCompany(incomes, member.Company)
-		totalOtherWage := calculateTotalOtherWageByCompany(incomes, member.Company, member.TravelExpense)
+	for _, employee := range employee {
+		totalCoachingPaymentRate := calculateTotalCoachingPaymentRateByCompanyID(incomes, employee.CompanyID)
+		totalTrainingWage := calculateTotalTrainingWageByCompanyID(incomes, employee.CompanyID)
+		totalOtherWage := calculateTotalOtherWageByCompanyID(incomes, employee.CompanyID, employee.TravelExpense)
 		paymentWage := calculateTotalPaymentWage(totalCoachingPaymentRate, totalTrainingWage, totalOtherWage)
-		netSalary := calculateNetSalary(member.Salary, member.IncomeTax1, member.SocialSecurity)
-		wage := calculateWage(paymentWage, member.Salary)
-		incomeTax53 := calculateIncomeTax53(wage, member.IncomeTax53Percentage)
-		netWage := calculateNetWage(member.IncomeTax53Percentage, paymentWage, member.Salary)
+		netSalary := calculateNetSalary(employee.Salary, employee.IncomeTax1, employee.SocialSecurity)
+		wage := calculateWage(paymentWage, employee.Salary)
+		incomeTax53 := calculateIncomeTax53(wage, employee.IncomeTax53Percentage)
+		netWage := calculateNetWage(employee.IncomeTax53Percentage, paymentWage, employee.Salary)
 		netTransfer := calculateNetTransfer(netSalary, netWage)
 		transactionTimesheet := model.TransactionTimesheet{
-			MemberID:              member.MemberID,
+			EmployeeID:            employee.EmployeeID,
 			Month:                 month,
 			Year:                  year,
-			MemberNameTH:          member.MemberNameTH,
-			Company:               member.Company,
+			EmployeeNameTH:        employee.EmployeeNameTH,
+			CompanyID:             employee.CompanyID,
 			Coaching:              totalCoachingPaymentRate,
 			Training:              totalTrainingWage,
 			Other:                 totalOtherWage,
 			TotalIncomes:          paymentWage,
-			Salary:                member.Salary,
-			IncomeTax1:            member.IncomeTax1,
-			SocialSecurity:        member.SocialSecurity,
+			Salary:                employee.Salary,
+			IncomeTax1:            employee.IncomeTax1,
+			SocialSecurity:        employee.SocialSecurity,
 			NetSalary:             netSalary,
 			Wage:                  wage,
-			IncomeTax53Percentage: member.IncomeTax53Percentage,
+			IncomeTax53Percentage: employee.IncomeTax53Percentage,
 			IncomeTax53:           incomeTax53,
 			NetWage:               netWage,
 			NetTransfer:           netTransfer,
@@ -82,29 +83,28 @@ func (timesheet Timesheet) CalculatePayment(incomeList []model.Incomes) model.Ti
 	}
 }
 
-func (timesheet Timesheet) GetSummaryByID(memberID string, year, month int) (model.SummaryTimesheet, error) {
+func (timesheet Timesheet) GetSummaryByID(employeeID string, year, month int) (model.SummaryTimesheet, error) {
 	var incomeList []model.Incomes
-	memberList, err := timesheet.Repository.GetMemberListByMemberID(memberID)
+	employeeList, err := timesheet.Repository.GetEmployeeListByEmployeeID(employeeID)
 	if err != nil {
 		return model.SummaryTimesheet{}, err
 	}
-	incomeList, err = timesheet.Repository.GetIncomes(memberID, year, month)
+	incomeList, err = timesheet.Repository.GetIncomes(employeeID, year, month)
 	if err != nil {
 		return model.SummaryTimesheet{}, err
 	}
-	payment, err := timesheet.Repository.GetTimesheet(memberID, year, month)
+	payment, err := timesheet.Repository.GetTimesheet(employeeID, year, month)
 	if err != nil {
-		err = timesheet.Repository.CreateTimesheet(memberID, year, month)
+		err = timesheet.Repository.CreateTimesheet(employeeID, year, month)
 		if err != nil {
 			return model.SummaryTimesheet{}, err
 		}
 	}
 	return model.SummaryTimesheet{
-		MemberNameENG:                 memberList[initialIndex].MemberNameENG,
-		Email:                         memberList[initialIndex].Email,
-		OvertimeRate:                  memberList[initialIndex].OvertimeRate,
-		RatePerDay:                    memberList[initialIndex].RatePerDay,
-		RatePerHour:                   memberList[initialIndex].RatePerHour,
+		EmployeeNameENG:               employeeList[initialIndex].EmployeeNameENG,
+		Email:                         employeeList[initialIndex].Email,
+		RatePerDay:                    payment.RatePerDay,
+		RatePerHour:                   payment.RatePerHour,
 		Year:                          year,
 		Month:                         month,
 		Incomes:                       incomeList,
@@ -117,15 +117,14 @@ func (timesheet Timesheet) GetSummaryByID(memberID string, year, month int) (mod
 		PaymentWage:                   payment.PaymentWage}, nil
 }
 
-func (timesheet Timesheet) VerifyAuthentication(email string, expiry float64, memberIDRequest string) string {
-	memberIDByEmail, err := timesheet.Repository.GetMemberIDByEmail(email)
-	if err != nil {
-		return err.Error()
+func (timesheet Timesheet) VerifyAuthentication(email string, idTokenExpirationTime float64) bool {
+	emailAuthenticityList := []string{"welovebug.biz", "scrum123.com"}
+	for _, emailAuthenticityList := range emailAuthenticityList {
+		if emailAuthenticityList == strings.Split(email, "@")[1] && now().Before(time.Unix(int64(idTokenExpirationTime), 0)) {
+			return true
+		}
 	}
-	if memberIDByEmail != memberIDRequest || time.Unix(int64(expiry), 0).Before(now()) {
-		return "Unauthorized"
-	}
-	return "Success"
+	return false
 }
 
 func now() time.Time {
@@ -196,10 +195,10 @@ func calculateTotalOtherWage(incomeList []model.Incomes) float64 {
 	return totalOtherWage
 }
 
-func calculateTotalOtherWageByCompany(incomeList []model.Incomes, company string, travelExpense float64) float64 {
+func calculateTotalOtherWageByCompanyID(incomeList []model.Incomes, companyID int, travelExpense float64) float64 {
 	var totalOtherWage float64
 	for _, income := range incomeList {
-		if income.Company == company {
+		if income.CompanyID == companyID {
 			totalOtherWage += income.OtherWage
 		}
 	}
@@ -214,10 +213,10 @@ func calculateTotalCoachingPaymentRate(incomeList []model.Incomes) float64 {
 	return totalCoachingPaymentRate
 }
 
-func calculateTotalCoachingPaymentRateByCompany(incomeList []model.Incomes, company string) float64 {
+func calculateTotalCoachingPaymentRateByCompanyID(incomeList []model.Incomes, companyID int) float64 {
 	var totalCoachingPaymentRate float64
 	for _, income := range incomeList {
-		if income.Company == company {
+		if income.CompanyID == companyID {
 			totalCoachingPaymentRate += income.CoachingPaymentRate
 		}
 	}
@@ -232,33 +231,144 @@ func calculateTotalTrainingWage(incomeList []model.Incomes) float64 {
 	return totalTrainingWage
 }
 
-func calculateTotalTrainingWageByCompany(incomeList []model.Incomes, company string) float64 {
+func calculateTotalTrainingWageByCompanyID(incomeList []model.Incomes, companyID int) float64 {
 	var totalTrainingWage float64
 	for _, income := range incomeList {
-		if income.Company == company {
+		if income.CompanyID == companyID {
 			totalTrainingWage += income.TrainingWage
 		}
 	}
 	return totalTrainingWage
 }
 
-func (timesheet Timesheet) GetSummaryInYearByID(memberID string, year int) (model.SummaryTransactionTimesheet, error) {
+func (timesheet Timesheet) GetSummaryInYearByEmployeeID(employeeID string, year int) (model.SummaryTransactionTimesheet, error) {
 	var transactionTimesheetList []model.TransactionTimesheet
-	transactionTimesheetList, err := timesheet.Repository.GetTransactionTimesheets(memberID, year)
+	transactionTimesheetList, err := timesheet.Repository.GetTransactionTimesheets(employeeID, year)
 	if err != nil {
 		return model.SummaryTransactionTimesheet{}, err
 	}
+	totalCoachingInYear := calculateTotalCoachingInYearByEmployeeID(transactionTimesheetList)
+	totalTrainingInYear := calculateTotalTrainingInYearByEmployeeID(transactionTimesheetList)
+	totalOtherInYear := calculateTotalOtherInYearByEmployeeID(transactionTimesheetList)
+	totalIncomesInYear := calculateTotalIncomesInYearByEmployeeID(transactionTimesheetList)
+	totalSalaryInYear := calculateTotalSalaryInYearByEmployeeID(transactionTimesheetList)
+	totalIncomeTax1InYear := calculateTotalIncomeTax1InYearByEmployeeID(transactionTimesheetList)
+	totalSocialSecurityInYear := calculateTotalSocialSecurityInYearByEmployeeID(transactionTimesheetList)
+	totalNetSalaryInYear := calculateTotalNetSalaryInYearByEmployeeID(transactionTimesheetList)
+	totalWageInYear := calculateTotalWageInYearByEmployeeID(transactionTimesheetList)
+	totalIncomeTax53InYear := calculateTotalIncomeTax53InYearByEmployeeID(transactionTimesheetList)
+	totalNetWageInYear := calculateTotalNetWageInYearByEmployeeID(transactionTimesheetList)
+	totalNetTransferInYear := calculateTotalNetTransferInYearByEmployeeID(transactionTimesheetList)
 	return model.SummaryTransactionTimesheet{
-		MemberID:               memberID,
-		Year:                   year,
-		TransactionTimesheets:  transactionTimesheetList,
-		TotalCoachingInYear:    0.00,
-		TotalTrainingInYear:    0.00,
-		TotalOtherInYear:       0.00,
-		TotalIncomesInYear:     0.00,
-		TotalSalaryInYear:      0.00,
-		TotalNetSalaryInYear:   0.00,
-		TotalWageInYear:        0.00,
-		TotalNetWageInYear:     0.00,
-		TotalNetTransferInYear: 0.00}, nil
+		EmployeeID:                employeeID,
+		Year:                      year,
+		TransactionTimesheets:     transactionTimesheetList,
+		TotalCoachingInYear:       totalCoachingInYear,
+		TotalTrainingInYear:       totalTrainingInYear,
+		TotalOtherInYear:          totalOtherInYear,
+		TotalIncomesInYear:        totalIncomesInYear,
+		TotalSalaryInYear:         totalSalaryInYear,
+		TotalIncomeTax1InYear:     totalIncomeTax1InYear,
+		TotalSocialSecurityInYear: totalSocialSecurityInYear,
+		TotalNetSalaryInYear:      totalNetSalaryInYear,
+		TotalWageInYear:           totalWageInYear,
+		TotalIncomeTax53InYear:    totalIncomeTax53InYear,
+		TotalNetWageInYear:        totalNetWageInYear,
+		TotalNetTransferInYear:    totalNetTransferInYear}, nil
+}
+
+func calculateTotalCoachingInYearByEmployeeID(transactionTimesheetList []model.TransactionTimesheet) float64 {
+	var totalCoachingInYear float64
+	for _, transactionTimesheet := range transactionTimesheetList {
+		totalCoachingInYear += transactionTimesheet.Coaching
+	}
+	return totalCoachingInYear
+}
+
+func calculateTotalTrainingInYearByEmployeeID(transactionTimesheetList []model.TransactionTimesheet) float64 {
+	var totalTrainingInYear float64
+	for _, transactionTimesheet := range transactionTimesheetList {
+		totalTrainingInYear += transactionTimesheet.Training
+	}
+	return totalTrainingInYear
+}
+
+func calculateTotalOtherInYearByEmployeeID(transactionTimesheetList []model.TransactionTimesheet) float64 {
+	var totalOtherInYear float64
+	for _, transactionTimesheet := range transactionTimesheetList {
+		totalOtherInYear += transactionTimesheet.Other
+	}
+	return totalOtherInYear
+}
+
+func calculateTotalIncomesInYearByEmployeeID(transactionTimesheetList []model.TransactionTimesheet) float64 {
+	var totalIncomesInYear float64
+	for _, transactionTimesheet := range transactionTimesheetList {
+		totalIncomesInYear += transactionTimesheet.TotalIncomes
+	}
+	return totalIncomesInYear
+}
+
+func calculateTotalSalaryInYearByEmployeeID(transactionTimesheetList []model.TransactionTimesheet) float64 {
+	var totalSalaryInYear float64
+	for _, transactionTimesheet := range transactionTimesheetList {
+		totalSalaryInYear += transactionTimesheet.Salary
+	}
+	return totalSalaryInYear
+}
+
+func calculateTotalIncomeTax1InYearByEmployeeID(transactionTimesheetList []model.TransactionTimesheet) float64 {
+	var totalIncomeTax1InYear float64
+	for _, transactionTimesheet := range transactionTimesheetList {
+		totalIncomeTax1InYear += transactionTimesheet.IncomeTax1
+	}
+	return totalIncomeTax1InYear
+}
+
+func calculateTotalSocialSecurityInYearByEmployeeID(transactionTimesheetList []model.TransactionTimesheet) float64 {
+	var totalSocialSecurityInYear float64
+	for _, transactionTimesheet := range transactionTimesheetList {
+		totalSocialSecurityInYear += transactionTimesheet.SocialSecurity
+	}
+	return totalSocialSecurityInYear
+}
+
+func calculateTotalNetSalaryInYearByEmployeeID(transactionTimesheetList []model.TransactionTimesheet) float64 {
+	var totalNetSalaryInYear float64
+	for _, transactionTimesheet := range transactionTimesheetList {
+		totalNetSalaryInYear += transactionTimesheet.NetSalary
+	}
+	return totalNetSalaryInYear
+}
+
+func calculateTotalWageInYearByEmployeeID(transactionTimesheetList []model.TransactionTimesheet) float64 {
+	var totalWageInYear float64
+	for _, transactionTimesheet := range transactionTimesheetList {
+		totalWageInYear += transactionTimesheet.Wage
+	}
+	return totalWageInYear
+}
+
+func calculateTotalIncomeTax53InYearByEmployeeID(transactionTimesheetList []model.TransactionTimesheet) float64 {
+	var totalIncomeTax53InYear float64
+	for _, transactionTimesheet := range transactionTimesheetList {
+		totalIncomeTax53InYear += transactionTimesheet.IncomeTax53
+	}
+	return totalIncomeTax53InYear
+}
+
+func calculateTotalNetWageInYearByEmployeeID(transactionTimesheetList []model.TransactionTimesheet) float64 {
+	var totalNetWageInYear float64
+	for _, transactionTimesheet := range transactionTimesheetList {
+		totalNetWageInYear += transactionTimesheet.NetWage
+	}
+	return totalNetWageInYear
+}
+
+func calculateTotalNetTransferInYearByEmployeeID(transactionTimesheetList []model.TransactionTimesheet) float64 {
+	var totalNetTransferInYear float64
+	for _, transactionTimesheet := range transactionTimesheetList {
+		totalNetTransferInYear += transactionTimesheet.NetTransfer
+	}
+	return totalNetTransferInYear
 }
